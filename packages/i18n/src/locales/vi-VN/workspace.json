@@ -175,6 +175,7 @@
     "state": {
       "backlog": "Tồn đọng",
       "unstarted": "Chưa bắt đầu",
+      "hold": "Tạm hoãn",
       "started": "Đang tiến hành",
       "completed": "Đã hoàn thành",
       "cancelled": "Đã hủy"

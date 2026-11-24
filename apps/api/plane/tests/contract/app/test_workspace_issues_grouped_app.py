@@ -8,7 +8,8 @@
 gained ``group_by``/``sub_group_by`` support that mirrors
 ``WorkspaceUserProfileIssuesEndpoint.get`` (feat(board): grouped workspace
 issues endpoint). With ``group_by=state__group&sub_group_by=project_id`` the
-``results`` payload becomes a dict keyed by the five state groups, each nesting
+``results`` payload becomes a dict keyed by the six state groups (Hold sits
+between Unstarted and Started), each nesting
 per-project cells of issue dicts; sub-group keys appear only for groups that
 actually hold work items. The flat branch (no ``group_by``) must keep returning
 the previous ``ViewIssueListSerializer`` list shape, and the legacy
@@ -37,7 +38,8 @@ from plane.db.models import (
 
 ISSUES_URL = "/api/workspaces/{slug}/issues/"
 PROJECT_ISSUES_URL = "/api/workspaces/{slug}/projects/{project_id}/issues/"
-STATE_GROUPS = {"backlog", "unstarted", "started", "completed", "cancelled"}
+STATE_GROUPS = {"backlog", "unstarted", "hold", "started", "completed", "cancelled"}
+CANONICAL_STATE_GROUP_ORDER = ["backlog", "unstarted", "hold", "started", "completed", "cancelled"]
 
 
 def _make_project(name, identifier, workspace, user):
@@ -192,7 +194,40 @@ class TestWorkspaceIssuesGroupedContract:
         # A group with no work items carries no sub-group cells at all.
         assert results["backlog"]["results"] == {}
         assert results["unstarted"]["results"] == {}
+        assert results["hold"]["results"] == {}
         assert results["cancelled"]["results"] == {}
+
+    @pytest.fixture
+    def hold_board(db, workspace, create_user):
+        """One project whose only work item sits in the ``hold`` group."""
+        project = _make_project("Hold Project", "HLD", workspace, create_user)
+        hold_state = _make_state("On Hold", "hold", project, workspace)
+        issue = _make_issue("Hold work item", project, workspace, hold_state, create_user)
+        return {"project": project, "issue": issue}
+
+    @pytest.mark.django_db
+    def test_grouped_by_state_group_and_project_includes_hold_cell(
+        self, session_client, workspace, hold_board
+    ):
+        """The grouped payload carries six groups with Hold between Unstarted and Started,
+        and the Hold work item lands in the ``hold`` -> its project cell."""
+        response = session_client.get(
+            ISSUES_URL.format(slug=workspace.slug),
+            {"group_by": "state__group", "sub_group_by": "project_id"},
+        )
+        assert response.status_code == status.HTTP_200_OK, (
+            f"Got {response.status_code}: {getattr(response, 'data', None)!r}"
+        )
+        results = response.data["results"]
+        assert isinstance(results, dict)
+        assert list(results.keys()) == CANONICAL_STATE_GROUP_ORDER
+
+        project = hold_board["project"]
+        assert _cell_issue_ids(results, "hold", project.id) == {str(hold_board["issue"].id)}
+
+        # No other group carries any work item in this workspace.
+        for group in ("backlog", "unstarted", "started", "completed", "cancelled"):
+            assert results[group]["results"] == {}
 
     @pytest.mark.django_db
     def test_flat_list_without_group_by(self, session_client, workspace, board):
@@ -298,7 +333,7 @@ class TestWorkspaceIssuesGroupedContract:
         assert results["started"]["total_results"] == 2
         assert {str(item["id"]) for item in results["completed"]["results"]} == {str(issues["a_completed"].id)}
         assert results["completed"]["total_results"] == 1
-        for group in ("backlog", "unstarted", "cancelled"):
+        for group in ("backlog", "unstarted", "hold", "cancelled"):
             assert results[group]["results"] == []
             assert results[group]["total_results"] == 0
 

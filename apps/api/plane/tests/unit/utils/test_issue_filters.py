@@ -4,7 +4,42 @@
 
 import pytest
 
-from plane.utils.issue_filters import filter_updated_at
+from plane.utils.issue_filters import filter_issue_state_type, filter_updated_at
+
+
+@pytest.mark.unit
+class TestFilterIssueStateTypeIncludesHold:
+    """Hold is open work: the ``type`` filter must select it under ``all`` and ``active``."""
+
+    def test_all_type_includes_hold_in_canonical_order(self):
+        issue_filter = filter_issue_state_type({"type": "all"}, {}, method="GET")
+        assert issue_filter["state__group__in"] == [
+            "backlog",
+            "unstarted",
+            "hold",
+            "started",
+            "completed",
+            "cancelled",
+        ]
+
+    def test_default_type_includes_hold_in_canonical_order(self):
+        issue_filter = filter_issue_state_type({}, {}, method="GET")
+        assert issue_filter["state__group__in"] == [
+            "backlog",
+            "unstarted",
+            "hold",
+            "started",
+            "completed",
+            "cancelled",
+        ]
+
+    def test_active_type_includes_hold(self):
+        issue_filter = filter_issue_state_type({"type": "active"}, {}, method="GET")
+        assert issue_filter["state__group__in"] == ["unstarted", "hold", "started"]
+
+    def test_backlog_type_stays_backlog_only(self):
+        issue_filter = filter_issue_state_type({"type": "backlog"}, {}, method="GET")
+        assert issue_filter["state__group__in"] == ["backlog"]
 
 
 @pytest.mark.unit

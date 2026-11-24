@@ -89,6 +89,7 @@ def create_states(workspace, project, user_id):
             "default": True,
         },
         {"name": "Todo", "color": "#3A3A3A", "sequence": 25000, "group": "unstarted"},
+        {"name": "Hold", "color": "#8B5CF6", "sequence": 30000, "group": "hold"},
         {
             "name": "In Progress",
             "color": "#F59E0B",

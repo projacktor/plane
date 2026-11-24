@@ -175,6 +175,7 @@
     "state": {
       "backlog": "Restante",
       "unstarted": "Neîncepute",
+      "hold": "În așteptare",
       "started": "În desfășurare",
       "completed": "Finalizate",
       "cancelled": "Anulate"

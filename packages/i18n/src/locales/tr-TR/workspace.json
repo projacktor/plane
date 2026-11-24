@@ -175,6 +175,7 @@
     "state": {
       "backlog": "Bekleme Listesi",
       "unstarted": "Başlatılmadı",
+      "hold": "Beklemede",
       "started": "Başlatıldı",
       "completed": "Tamamlandı",
       "cancelled": "İptal Edildi"

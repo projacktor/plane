@@ -175,6 +175,7 @@
     "state": {
       "backlog": "백로그",
       "unstarted": "시작되지 않음",
+      "hold": "보류",
       "started": "시작됨",
       "completed": "완료됨",
       "cancelled": "취소됨"

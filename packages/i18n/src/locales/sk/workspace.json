@@ -175,6 +175,7 @@
     "state": {
       "backlog": "Backlog",
       "unstarted": "Nezačaté",
+      "hold": "Pozastavené",
       "started": "Začaté",
       "completed": "Dokončené",
       "cancelled": "Zrušené"

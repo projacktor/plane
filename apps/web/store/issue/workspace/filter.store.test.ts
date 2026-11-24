@@ -181,6 +181,29 @@ describe("WorkspaceIssuesFilter board view (89bfd0a2 regression guard)", () => {
     expect(setSpy).not.toHaveBeenCalled();
   });
 
+  it("keeps group_by, sub_group_by and show_empty_groups across view switches and board re-seeds", async () => {
+    const { store } = createFilterStore();
+    // navigating between static views must not leak spreadsheet settings into the board
+    await store.fetchFilters(WORKSPACE_SLUG, "assigned");
+    await store.fetchFilters(WORKSPACE_SLUG, BOARD_VIEW_ID);
+    expect(store.filters[WORKSPACE_BOARD_VIEW_ID]?.displayFilters).toEqual(
+      expect.objectContaining({
+        group_by: "state_detail.group",
+        sub_group_by: "project",
+        show_empty_groups: true,
+      })
+    );
+
+    // re-entering the board re-seeds the display filters; the hold column depends on these keys surviving
+    await store.fetchFilters(WORKSPACE_SLUG, BOARD_VIEW_ID);
+    const boardDisplayFilters = store.filters[WORKSPACE_BOARD_VIEW_ID]?.displayFilters;
+    expect(boardDisplayFilters?.group_by).toBe("state_detail.group");
+    expect(boardDisplayFilters?.sub_group_by).toBe("project");
+    expect(boardDisplayFilters?.show_empty_groups).toBe(true);
+    // kanban grouping in-memory filters must stay empty so every state group column (incl. hold) renders
+    expect(store.filters[WORKSPACE_BOARD_VIEW_ID]?.kanbanFilters).toEqual({ group_by: [], sub_group_by: [] });
+  });
+
   it("still persists local filters for non-board views", async () => {
     const { store, fetchIssuesWithExistingPagination } = createFilterStore();
     await store.fetchFilters(WORKSPACE_SLUG, "all-issues");

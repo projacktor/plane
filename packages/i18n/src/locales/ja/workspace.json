@@ -175,6 +175,7 @@
     "state": {
       "backlog": "バックログ",
       "unstarted": "未開始",
+      "hold": "保留",
       "started": "開始済み",
       "completed": "完了",
       "cancelled": "キャンセル"

@@ -138,7 +138,7 @@ class ModuleListCreateAPIEndpoint(BaseAPIView):
                 started_issues=Count(
                     "issue_module__issue__state__group",
                     filter=Q(
-                        issue_module__issue__state__group="started",
+                        issue_module__issue__state__group__in=["started", "hold"],
                         issue_module__issue__archived_at__isnull=True,
                         issue_module__issue__is_draft=False,
                         issue_module__deleted_at__isnull=True,
@@ -389,7 +389,7 @@ class ModuleDetailAPIEndpoint(BaseAPIView):
                 started_issues=Count(
                     "issue_module__issue__state__group",
                     filter=Q(
-                        issue_module__issue__state__group="started",
+                        issue_module__issue__state__group__in=["started", "hold"],
                         issue_module__issue__archived_at__isnull=True,
                         issue_module__issue__is_draft=False,
                         issue_module__deleted_at__isnull=True,
@@ -1007,7 +1007,7 @@ class ModuleArchiveUnarchiveAPIEndpoint(BaseAPIView):
                 started_issues=Count(
                     "issue_module__issue__state__group",
                     filter=Q(
-                        issue_module__issue__state__group="started",
+                        issue_module__issue__state__group__in=["started", "hold"],
                         issue_module__issue__archived_at__isnull=True,
                         issue_module__issue__is_draft=False,
                         issue_module__deleted_at__isnull=True,

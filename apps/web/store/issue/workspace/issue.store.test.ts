@@ -35,13 +35,21 @@ const setup = async () => {
   const root = {
     globalViewId: undefined,
     issues,
-    rootStore: { state: { stateMap: { "state-a": { group: "unstarted" }, "state-b": { group: "started" } } } },
+    rootStore: {
+      state: {
+        stateMap: {
+          "state-a": { group: "unstarted" },
+          "state-b": { group: "started" },
+          "state-hold": { group: "hold" },
+        },
+      },
+    },
   } as unknown as IIssueRootStore;
   const filters = new WorkspaceIssuesFilter(root);
   const store = new WorkspaceIssues(root, filters);
   await filters.fetchFilters("workspace", WORKSPACE_BOARD_VIEW_ID);
   runInAction(() => {
-    store.groupedIssueIds = { unstarted: { "project-1": [] }, started: { "project-1": [] } };
+    store.groupedIssueIds = { unstarted: { "project-1": [] }, hold: { "project-1": [] }, started: { "project-1": [] } };
   });
   return { store, issues };
 };
@@ -65,6 +73,23 @@ describe("workspace board optimistic updates", () => {
     expect(patch).toHaveBeenCalledWith("workspace", "project-1", existing.id, { state_id: "state-b" });
   });
 
+  it("moves an issue unstarted → hold within its project swimlane", async () => {
+    const { store, issues } = await setup();
+    const existing = issue("issue-1", "state-a");
+    issues.addIssue([existing]);
+    runInAction(() => {
+      store.groupedIssueIds = { unstarted: { "project-1": [existing.id] }, hold: { "project-1": [] } };
+    });
+    const patch = vi.spyOn(store.issueService, "patchIssue").mockResolvedValue(undefined);
+
+    const update = store.issueUpdate("workspace", "project-1", existing.id, { state_id: "state-hold" });
+    // optimistic: the issue leaves unstarted and lands in hold, inside the same project swimlane
+    expect(store.getIssueIds("unstarted", "project-1")).toEqual([]);
+    expect(store.getIssueIds("hold", "project-1")).toEqual([existing.id]);
+    await update;
+    expect(patch).toHaveBeenCalledWith("workspace", "project-1", existing.id, { state_id: "state-hold" });
+  });
+
   it("places the created quick-add issue in its group without refetching", async () => {
     const { store } = await setup();
     const temporary = issue("temporary", "state-b");
@@ -75,6 +100,20 @@ describe("workspace board optimistic updates", () => {
     await store.quickAddIssue("workspace", "project-1", temporary);
 
     expect(store.getIssueIds("started", "project-1")).toEqual([created.id]);
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("places the created quick-add issue in the hold group without refetching", async () => {
+    const { store } = await setup();
+    const temporary = issue("temporary", "state-hold");
+    temporary.state__group = "hold";
+    const created = { ...temporary, id: "created", state__group: "hold" } as TIssue;
+    vi.spyOn(store.issueService, "createIssue").mockResolvedValue(created);
+    const fetch = vi.spyOn(store.workspaceService, "getViewIssues");
+
+    await store.quickAddIssue("workspace", "project-1", temporary);
+
+    expect(store.getIssueIds("hold", "project-1")).toEqual([created.id]);
     expect(fetch).not.toHaveBeenCalled();
   });
 });

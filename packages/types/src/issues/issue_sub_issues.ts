@@ -9,6 +9,7 @@ import type { TIssue } from "./issue";
 export type TSubIssuesStateDistribution = {
   backlog: string[];
   unstarted: string[];
+  hold: string[];
   started: string[];
   completed: string[];
   cancelled: string[];

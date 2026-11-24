@@ -175,6 +175,7 @@
     "state": {
       "backlog": "Backlog",
       "unstarted": "Niet gestart",
+      "hold": "In de wacht",
       "started": "Gestart",
       "completed": "Voltooid",
       "cancelled": "Geannuleerd"

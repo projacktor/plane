@@ -291,3 +291,33 @@ class TestWorkspaceUserProfileProjectCounts:
             str(row["id"]): (row["created_issues"], row["assigned_issues"]) for row in response.data["project_data"]
         }
         assert counts == {str(project.id): (0, 1), str(open_project.id): (1, 2)}
+
+    @pytest.mark.django_db
+    def test_pending_issues_count_includes_hold_group(self, workspace, project, create_user):
+        """A Hold work item assigned to the profile user is pending (open) work, while a
+        completed one is not — pending_issues must select Hold along with backlog/unstarted/started."""
+        caller = _make_user("caller")
+        WorkspaceMember.objects.create(workspace=workspace, member=caller, role=15)
+        ProjectMember.objects.create(project=project, member=caller, workspace=workspace, role=15)
+
+        hold_state = State.objects.create(
+            name="Hold", color="#8B5CF6", group="hold", project=project, workspace=workspace
+        )
+        done_state = State.objects.create(
+            name="Done", color="#333333", group="completed", project=project, workspace=workspace
+        )
+
+        hold_issue = _make_issue("Hold issue", project, workspace, create_user)
+        hold_issue.state = hold_state
+        hold_issue.save(created_by_id=create_user.id)
+        IssueAssignee.objects.create(issue=hold_issue, assignee=create_user, project=project, workspace=workspace)
+
+        done_issue = _make_issue("Done issue", project, workspace, create_user)
+        done_issue.state = done_state
+        done_issue.save(created_by_id=create_user.id)
+        IssueAssignee.objects.create(issue=done_issue, assignee=create_user, project=project, workspace=workspace)
+
+        response = _client(caller).get(PROFILE_URL.format(slug=workspace.slug, user_id=create_user.id))
+        assert response.status_code == status.HTTP_200_OK, response.data
+        pending = {str(row["id"]): row["pending_issues"] for row in response.data["project_data"]}
+        assert pending[str(project.id)] == 1

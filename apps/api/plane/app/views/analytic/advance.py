@@ -97,7 +97,7 @@ class AdvanceAnalyticsEndpoint(AdvanceAnalyticsBaseView):
 
         return {
             "total_work_items": self.get_filtered_counts(base_queryset),
-            "started_work_items": self.get_filtered_counts(base_queryset.filter(state__group="started")),
+            "started_work_items": self.get_filtered_counts(base_queryset.filter(state__group__in=["started", "hold"])),
             "backlog_work_items": self.get_filtered_counts(base_queryset.filter(state__group="backlog")),
             "un_started_work_items": self.get_filtered_counts(base_queryset.filter(state__group="unstarted")),
             "completed_work_items": self.get_filtered_counts(base_queryset.filter(state__group="completed")),
@@ -138,7 +138,7 @@ class AdvanceAnalyticsStatsEndpoint(AdvanceAnalyticsBaseView):
                 completed_work_items=Count("id", filter=Q(state__group="completed")),
                 backlog_work_items=Count("id", filter=Q(state__group="backlog")),
                 un_started_work_items=Count("id", filter=Q(state__group="unstarted")),
-                started_work_items=Count("id", filter=Q(state__group="started")),
+                started_work_items=Count("id", filter=Q(state__group__in=["started", "hold"])),
             )
             .order_by("project_id")
         )
@@ -152,7 +152,7 @@ class AdvanceAnalyticsStatsEndpoint(AdvanceAnalyticsBaseView):
                 completed_work_items=Count("id", filter=Q(state__group="completed")),
                 backlog_work_items=Count("id", filter=Q(state__group="backlog")),
                 un_started_work_items=Count("id", filter=Q(state__group="unstarted")),
-                started_work_items=Count("id", filter=Q(state__group="started")),
+                started_work_items=Count("id", filter=Q(state__group__in=["started", "hold"])),
             )
             .order_by("project_id")
         )

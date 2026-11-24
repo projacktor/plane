@@ -31,6 +31,12 @@ export const STATE_GROUPS: {
     defaultStateName: "Todo",
     color: "#3f76ff",
   },
+  hold: {
+    key: "hold",
+    label: "Hold",
+    defaultStateName: "Hold",
+    color: "#8B5CF6",
+  },
   started: {
     key: "started",
     label: "Started",
@@ -56,6 +62,7 @@ export const COMPLETED_STATE_GROUPS = [STATE_GROUPS.completed.key];
 export const PENDING_STATE_GROUPS = [
   STATE_GROUPS.backlog.key,
   STATE_GROUPS.unstarted.key,
+  STATE_GROUPS.hold.key,
   STATE_GROUPS.started.key,
   STATE_GROUPS.cancelled.key,
 ];
@@ -70,6 +77,11 @@ export const STATE_DISTRIBUTION = {
     key: STATE_GROUPS.unstarted.key,
     issues: "unstarted_issues",
     points: "unstarted_estimate_points",
+  },
+  [STATE_GROUPS.hold.key]: {
+    key: STATE_GROUPS.hold.key,
+    issues: "started_issues",
+    points: "started_estimate_points",
   },
   [STATE_GROUPS.started.key]: {
     key: STATE_GROUPS.started.key,

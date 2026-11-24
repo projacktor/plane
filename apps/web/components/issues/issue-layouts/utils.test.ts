@@ -7,7 +7,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { IState, TIssue, TIssueGroupByOptions } from "@plane/types";
 import type { GroupDropLocation, IssueUpdates } from "./utils";
-import { getDefaultStateForGroup, handleGroupDragDrop } from "./utils";
+import { getDefaultStateForGroup, getStateGroupColumnName, handleGroupDragDrop } from "./utils";
 
 const SOURCE_ISSUE_ID = "issue-1";
 const PROJECT_ID = "project-1";
@@ -104,6 +104,40 @@ describe("handleGroupDragDrop with state groups", () => {
     );
   });
 
+  it("resolves the project's hold state when dropping into the hold column of its own swimlane", async () => {
+    const holdStateId = "state-hold";
+    const { error, updateIssueOnDrop, getStateIdForStateGroup } = await runHandleGroupDragDrop({
+      source: buildSource({ groupId: "unstarted", columnId: "col-unstarted", subGroupId: PROJECT_ID }),
+      destination: buildDestination({ groupId: "hold", columnId: "col-hold", subGroupId: PROJECT_ID }),
+      issue: buildIssue({ state_id: "state-unstarted", state__group: "unstarted" }),
+      subGroupBy: "project",
+      getStateIdForStateGroup: vi.fn(() => holdStateId),
+    });
+
+    expect(error).toBeUndefined();
+    // the hold state must be resolved against the dragged issue's own project, not a route project
+    expect(getStateIdForStateGroup).toHaveBeenCalledWith(PROJECT_ID, "hold");
+    expect(updateIssueOnDrop).toHaveBeenCalledTimes(1);
+    expect(updateIssueOnDrop).toHaveBeenCalledWith(
+      PROJECT_ID,
+      SOURCE_ISSUE_ID,
+      expect.objectContaining({
+        id: SOURCE_ISSUE_ID,
+        project_id: PROJECT_ID,
+        state_id: holdStateId,
+        state__group: "hold",
+      }),
+      expect.objectContaining({ state__group: { ADD: ["hold"], REMOVE: ["unstarted"] } })
+    );
+    // staying inside the same project swimlane must not record a project move
+    expect(updateIssueOnDrop).toHaveBeenCalledWith(
+      PROJECT_ID,
+      SOURCE_ISSUE_ID,
+      expect.anything(),
+      expect.not.objectContaining({ project_id: expect.anything() })
+    );
+  });
+
   it("throws and skips the update when no state resolves in the destination state group", async () => {
     const { error, updateIssueOnDrop, getStateIdForStateGroup } = await runHandleGroupDragDrop({
       getStateIdForStateGroup: vi.fn(() => undefined),
@@ -193,6 +227,14 @@ describe("handleGroupDragDrop sub-group handling", () => {
     expect(getIssueById).not.toHaveBeenCalled();
     expect(getIssueIds).not.toHaveBeenCalled();
     expect(updateIssueOnDrop).not.toHaveBeenCalled();
+  });
+});
+
+describe("getStateGroupColumnName", () => {
+  it("labels the unstarted Board column as Todo while keeping other state groups unchanged", () => {
+    expect(getStateGroupColumnName("unstarted")).toBe("Todo");
+    expect(getStateGroupColumnName("started")).toBe("Started");
+    expect(getStateGroupColumnName("hold")).toBe("Hold");
   });
 });
 

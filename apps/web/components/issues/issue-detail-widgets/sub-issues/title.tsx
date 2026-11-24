@@ -21,7 +21,7 @@ type Props = {
   issueServiceType?: TIssueServiceType;
 };
 
-const ORDERED_STATE_GROUPS: TStateGroups[] = ["backlog", "unstarted", "started", "completed", "cancelled"];
+const ORDERED_STATE_GROUPS: TStateGroups[] = ["backlog", "unstarted", "hold", "started", "completed", "cancelled"];
 
 /**
  * Completed / total sub-work items as a compact ring + count chip next to the section title. Hovering it
@@ -82,7 +82,7 @@ export const SubIssuesProgressChip = observer(function SubIssuesProgressChip(pro
             <span className="text-caption-md-medium text-secondary">{Math.round(percentage)}%</span>
           </div>
           <SegmentedProgress data={stateGroupStats} aria-label={t("common.progress")} />
-          <div className="grid grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {stateGroupStats.map((stat) => (
               <div key={stat.id} className="flex flex-col gap-1 py-1.5">
                 <span className="flex items-center gap-1 text-caption-md-medium whitespace-nowrap text-secondary">

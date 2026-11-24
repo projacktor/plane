@@ -80,7 +80,7 @@ class WorkspaceModulesEndpoint(BaseAPIView):
                 started_issues=Count(
                     "issue_module",
                     filter=Q(
-                        issue_module__issue__state__group="started",
+                        issue_module__issue__state__group__in=["started", "hold"],
                         issue_module__issue__archived_at__isnull=True,
                         issue_module__issue__is_draft=False,
                         issue_module__deleted_at__isnull=True,

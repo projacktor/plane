@@ -175,6 +175,7 @@
     "state": {
       "backlog": "Pendiente",
       "unstarted": "Sin iniciar",
+      "hold": "En espera",
       "started": "Iniciado",
       "completed": "Completado",
       "cancelled": "Cancelado"

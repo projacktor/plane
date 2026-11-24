@@ -91,10 +91,19 @@ class TestProjectAPIPost(TestProjectBase):
 
         # Verify default states were created
         states = State.objects.filter(project=project)
-        assert states.count() == 5
-        expected_states = ["Backlog", "Todo", "In Progress", "Done", "Cancelled"]
+        assert states.count() == 6
+        # States come back ordered by sequence: hold sits between unstarted and started.
+        expected_states = ["Backlog", "Todo", "Hold", "In Progress", "Done", "Cancelled"]
         state_names = list(states.values_list("name", flat=True))
-        assert set(state_names) == set(expected_states)
+        assert state_names == expected_states
+
+        # Hold lives in the hold group with its fixed sequence.
+        hold_state = states.get(name="Hold")
+        assert hold_state.group == "hold"
+        assert hold_state.sequence == 30000
+
+        # Backlog remains the only default state.
+        assert list(states.filter(default=True).values_list("name", flat=True)) == ["Backlog"]
 
     @pytest.mark.django_db
     def test_create_project_with_project_lead(self, session_client, workspace, create_user):

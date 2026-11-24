@@ -11,6 +11,7 @@ import { CancelledGroupIcon } from "./cancelled-group-icon";
 import { CompletedGroupIcon } from "./completed-group-icon";
 import type { StateGroup, StateIconSize } from "./helper";
 import { getStateIconSize, STATE_GROUP_COLORS } from "./helper";
+import { HoldGroupIcon } from "./hold-group-icon";
 import { StartedGroupIcon } from "./started-group-icon";
 import { UnstartedGroupIcon } from "./unstarted-group-icon";
 
@@ -29,6 +30,7 @@ const iconComponents = {
   backlog: BacklogGroupIcon,
   cancelled: CancelledGroupIcon,
   completed: CompletedGroupIcon,
+  hold: HoldGroupIcon,
   started: StartedGroupIcon,
   unstarted: UnstartedGroupIcon,
 };

@@ -4,7 +4,15 @@
 
 import pytest
 
-from plane.utils.order_queryset import ISSUE_GROUP_BY_ALLOWLIST, sanitize_order_by
+from plane.utils.order_queryset import ISSUE_GROUP_BY_ALLOWLIST, STATE_ORDER, sanitize_order_by
+
+
+@pytest.mark.unit
+class TestStateOrderIsCanonical:
+    """Hold sits between Unstarted and Started in the canonical state order."""
+
+    def test_state_order_includes_hold_between_unstarted_and_started(self):
+        assert STATE_ORDER == ["backlog", "unstarted", "hold", "started", "completed", "cancelled"]
 
 
 @pytest.mark.unit

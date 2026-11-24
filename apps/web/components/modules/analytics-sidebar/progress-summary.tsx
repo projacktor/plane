@@ -17,6 +17,7 @@ const STATE_GROUP_ORDER: TStateGroups[] = ["completed", "started", "unstarted", 
 const STATE_GROUP_COLOR_CLASS: Record<TStateGroups, string> = {
   backlog: "text-icon-states-backlog",
   unstarted: "text-icon-states-unstarted",
+  hold: "text-icon-states-started",
   started: "text-icon-states-started",
   completed: "text-icon-states-completed",
   cancelled: "text-icon-states-cancelled",

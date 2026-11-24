@@ -175,6 +175,7 @@
     "state": {
       "backlog": "ჩამორჩენა",
       "unstarted": "დაუწყებელი",
+      "hold": "შეჩერებული",
       "started": "დაწყებული",
       "completed": "დასრულებული",
       "cancelled": "გაუქმებული"

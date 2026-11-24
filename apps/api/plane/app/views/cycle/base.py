@@ -692,7 +692,7 @@ class CycleProgressEndpoint(BaseAPIView):
                 ),
                 started_estimate_point=Sum(
                     Case(
-                        When(state__group="started", then="value_as_float"),
+                        When(state__group__in=["started", "hold"], then="value_as_float"),
                         default=Value(0),
                         output_field=FloatField(),
                     )
@@ -743,7 +743,7 @@ class CycleProgressEndpoint(BaseAPIView):
                 issue_cycle__deleted_at__isnull=True,
                 workspace__slug=slug,
                 project_id=project_id,
-                state__group="started",
+                state__group__in=["started", "hold"],
             ).count()
 
             cancelled_issues = Issue.issue_objects.filter(

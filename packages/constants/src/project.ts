@@ -44,6 +44,10 @@ export const GROUP_CHOICES = {
     key: "unstarted",
     i18n_label: "workspace_projects.state.unstarted",
   },
+  hold: {
+    key: "hold",
+    i18n_label: "workspace_projects.state.hold",
+  },
   started: {
     key: "started",
     i18n_label: "workspace_projects.state.started",

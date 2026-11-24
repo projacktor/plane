@@ -426,7 +426,7 @@ class IssueListCreateAPIEndpoint(BaseAPIView):
 
         # Custom ordering for priority and state
         priority_order = ["urgent", "high", "medium", "low", "none"]
-        state_order = ["backlog", "unstarted", "started", "completed", "cancelled"]
+        state_order = ["backlog", "unstarted", "hold", "started", "completed", "cancelled"]
 
         # Reject any field not in the allowlist before it reaches .order_by().
         # An unrecognised value is replaced with the safe default, preventing

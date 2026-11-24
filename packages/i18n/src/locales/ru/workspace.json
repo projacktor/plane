@@ -175,6 +175,7 @@
     "state": {
       "backlog": "Бэклог",
       "unstarted": "Не начато",
+      "hold": "Отложено",
       "started": "В процессе",
       "completed": "Завершено",
       "cancelled": "Отменено"

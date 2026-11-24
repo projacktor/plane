@@ -8,7 +8,7 @@ from django.utils import timezone
 from datetime import timedelta
 from uuid import uuid4
 
-from plane.db.models import Cycle, Project, ProjectMember
+from plane.db.models import Cycle, CycleIssue, Estimate, EstimatePoint, Issue, Project, ProjectMember, State
 
 
 @pytest.fixture
@@ -383,3 +383,98 @@ class TestCycleDetailAPIEndpoint:
         assert cycle_data["started_issues"] == 0
         assert cycle_data["unstarted_issues"] == 0
         assert cycle_data["backlog_issues"] == 0
+
+
+@pytest.fixture
+def hold_cycle(db, project, create_user):
+    """A cycle with a single work item in the ``hold`` state group and a points estimate."""
+    workspace = project.workspace
+    cycle = Cycle.objects.create(
+        name="Hold Cycle",
+        description="Cycle carrying one Hold work item",
+        start_date=timezone.now() + timedelta(days=1),
+        end_date=timezone.now() + timedelta(days=7),
+        project=project,
+        workspace=workspace,
+        owned_by=create_user,
+    )
+    hold_state = State.objects.create(
+        name="Hold", color="#8B5CF6", group="hold", project=project, workspace=workspace
+    )
+    estimate = Estimate.objects.create(name="Points", type="points", project=project, workspace=workspace)
+    estimate_point = EstimatePoint.objects.create(
+        estimate=estimate, key=3, value="3", project=project, workspace=workspace
+    )
+    issue = Issue(
+        name="Hold work item",
+        project=project,
+        workspace=workspace,
+        state=hold_state,
+        estimate_point=estimate_point,
+    )
+    issue.save(created_by_id=create_user.id)
+    CycleIssue.objects.create(issue=issue, cycle=cycle, project=project, workspace=workspace)
+    return {"cycle": cycle, "issue": issue, "state": hold_state, "estimate_point": estimate_point}
+
+
+@pytest.mark.contract
+class TestCycleHoldStateAggregates:
+    """A Hold work item counts as Started/open work in the existing cycle aggregates.
+
+    No new ``hold_issues`` (or similar) response fields may appear.
+    """
+
+    @pytest.mark.django_db
+    def test_hold_issue_counts_as_started_in_cycle_detail(self, api_key_client, workspace, project, hold_cycle):
+        url = f"/api/v1/workspaces/{workspace.slug}/projects/{project.id}/cycles/{hold_cycle['cycle'].id}/"
+        response = api_key_client.get(url)
+        assert response.status_code == status.HTTP_200_OK, (
+            f"Got {response.status_code}: {getattr(response, 'data', None)!r}"
+        )
+        data = response.data
+        assert data["total_issues"] == 1
+        assert data["started_issues"] == 1
+        assert data["completed_issues"] == 0
+        assert data["unstarted_issues"] == 0
+        assert data["backlog_issues"] == 0
+        assert data["cancelled_issues"] == 0
+        # Hold rides existing aggregates only — no new response field.
+        assert "hold_issues" not in data
+
+    @pytest.mark.django_db
+    def test_hold_issue_counts_as_started_in_cycle_progress(
+        self, session_client, workspace, project, hold_cycle
+    ):
+        url = f"/api/workspaces/{workspace.slug}/projects/{project.id}/cycles/{hold_cycle['cycle'].id}/progress/"
+        response = session_client.get(url)
+        assert response.status_code == status.HTTP_200_OK, (
+            f"Got {response.status_code}: {getattr(response, 'data', None)!r}"
+        )
+        data = response.data
+        assert data["total_issues"] == 1
+        assert data["started_issues"] == 1
+        assert data["completed_issues"] == 0
+        assert data["unstarted_issues"] == 0
+        assert data["backlog_issues"] == 0
+        assert data["cancelled_issues"] == 0
+        # No new Hold-specific response field.
+        assert "hold_issues" not in data
+
+    @pytest.mark.django_db
+    def test_hold_issue_contributes_started_estimate_points(
+        self, session_client, workspace, project, hold_cycle
+    ):
+        url = f"/api/workspaces/{workspace.slug}/projects/{project.id}/cycles/{hold_cycle['cycle'].id}/progress/"
+        response = session_client.get(url)
+        assert response.status_code == status.HTTP_200_OK, (
+            f"Got {response.status_code}: {getattr(response, 'data', None)!r}"
+        )
+        data = response.data
+        # The single points estimate rides the started estimate aggregates.
+        assert data["started_estimate_points"] == 3.0
+        assert data["total_estimate_points"] == 3.0
+        assert data["backlog_estimate_points"] == 0
+        assert data["unstarted_estimate_points"] == 0
+        assert data["completed_estimate_points"] == 0
+        # No new Hold-specific response field.
+        assert "hold_estimate_points" not in data

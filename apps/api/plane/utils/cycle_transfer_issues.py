@@ -106,7 +106,7 @@ def transfer_cycle_issues(
             started_issues=Count(
                 "issue_cycle__issue__state__group",
                 filter=Q(
-                    issue_cycle__issue__state__group="started",
+                    issue_cycle__issue__state__group__in=["started", "hold"],
                     issue_cycle__issue__archived_at__isnull=True,
                     issue_cycle__issue__is_draft=False,
                     issue_cycle__issue__deleted_at__isnull=True,
@@ -438,7 +438,7 @@ def transfer_cycle_issues(
         workspace__slug=slug,
         issue__archived_at__isnull=True,
         issue__is_draft=False,
-        issue__state__group__in=["backlog", "unstarted", "started"],
+        issue__state__group__in=["backlog", "unstarted", "hold", "started"],
     )
 
     updated_cycles = []

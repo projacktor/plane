@@ -39,6 +39,7 @@ export { SerifIcon } from "./serif-icon";
 export { BacklogGroupIcon } from "./state/backlog-group-icon";
 export { CancelledGroupIcon } from "./state/cancelled-group-icon";
 export { CompletedGroupIcon } from "./state/completed-group-icon";
+export { HoldGroupIcon } from "./state/hold-group-icon";
 export { INTAKE_STATE_GROUP_COLORS, STATE_GROUP_COLORS } from "./state/helper";
 export { IntakeStateGroupIcon } from "./state/intake-state-group-icon";
 export { StartedGroupIcon } from "./state/started-group-icon";

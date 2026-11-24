@@ -71,7 +71,7 @@ class CycleArchiveUnarchiveEndpoint(BaseAPIView):
         started_estimate_point = (
             Issue.issue_objects.filter(
                 estimate_point__estimate__type="points",
-                state__group="started",
+                state__group__in=["started", "hold"],
                 issue_cycle__cycle_id=OuterRef("pk"),
                 issue_cycle__deleted_at__isnull=True,
             )
@@ -174,7 +174,7 @@ class CycleArchiveUnarchiveEndpoint(BaseAPIView):
                     "issue_cycle__issue__id",
                     distinct=True,
                     filter=Q(
-                        issue_cycle__issue__state__group="started",
+                        issue_cycle__issue__state__group__in=["started", "hold"],
                         issue_cycle__issue__archived_at__isnull=True,
                         issue_cycle__issue__is_draft=False,
                         issue_cycle__issue__deleted_at__isnull=True,

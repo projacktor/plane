@@ -175,6 +175,7 @@
     "state": {
       "backlog": "Backlog",
       "unstarted": "Belum dimulai",
+      "hold": "Ditunda",
       "started": "Dimulai",
       "completed": "Selesai",
       "cancelled": "Dibatalkan"

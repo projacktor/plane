@@ -369,6 +369,7 @@ class WorkspaceUserProfileEndpoint(BaseAPIView):
                             project_issue__state__group__in=[
                                 "backlog",
                                 "unstarted",
+                                "hold",
                                 "started",
                             ],
                             project_issue__assignees__in=[user_id],

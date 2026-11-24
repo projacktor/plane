@@ -106,7 +106,7 @@ class ModuleViewSet(BaseViewSet):
         )
         started_issues = (
             Issue.issue_objects.filter(
-                state__group="started",
+                state__group__in=["started", "hold"],
                 issue_module__module_id=OuterRef("pk"),
                 issue_module__deleted_at__isnull=True,
             )
@@ -190,7 +190,7 @@ class ModuleViewSet(BaseViewSet):
         started_estimate_point = (
             Issue.issue_objects.filter(
                 estimate_point__estimate__type="points",
-                state__group="started",
+                state__group__in=["started", "hold"],
                 issue_module__module_id=OuterRef("pk"),
                 issue_module__deleted_at__isnull=True,
             )
