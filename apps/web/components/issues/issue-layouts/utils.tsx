@@ -258,12 +258,15 @@ const getStateColumns = ({ projectId }: TGetColumns): IGroupByColumn[] | undefin
   }));
 };
 
+export const getStateGroupColumnName = (group: TStateGroups): string =>
+  group === "unstarted" ? "Todo" : STATE_GROUPS[group].label;
+
 const getStateGroupColumns = (): IGroupByColumn[] => {
   const stateGroups = STATE_GROUPS;
   // map state groups to group by columns
   return Object.values(stateGroups).map((stateGroup) => ({
     id: stateGroup.key,
-    name: stateGroup.label,
+    name: getStateGroupColumnName(stateGroup.key),
     icon: (
       <div className="size-4 rounded-full">
         <StateGroupIcon stateGroup={stateGroup.key} size={EIconSize.LG} />
